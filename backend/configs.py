@@ -3,13 +3,12 @@ import os
 
 load_dotenv()
 
+
 class Config:
     def __init__(self) -> None:
         self.POSTGRES_DB = os.getenv("POSTGRES_DB")
         self.POSTGRES_USER = os.getenv("POSTGRES_USER")
-        self.POSTGRES_PASSWORD = os.getenv(
-            "POSTGRES_PASSWORD"
-        )
+        self.POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
         self.POSTGRES_PORT = os.getenv("POSTGRES_PORT")
 
     def get_sync_db_url(self) -> str:
@@ -22,4 +21,4 @@ class Config:
                 raise ValueError("Host port is not defined")
         except Exception as e:
             raise Exception(f"Error: {e}")
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_USER}@localhost:{self.POSTGRES_PORT}/{self.POSTGRES_PASSWORD}?sslmode=require"
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@localhost:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
