@@ -10,11 +10,11 @@ A project created with FastAPI CLI.
 uv run fastapi dev
 ```
 
-Visit http://localhost:8000
+Visit <http://localhost:8000>
 
 ### Deploy to FastAPI Cloud
 
-> FastAPI Cloud is currently in private beta. Join the waitlist at https://fastapicloud.com
+> FastAPI Cloud is currently in private beta. Join the waitlist at <https://fastapicloud.com>
 
 ```bash
 uv run fastapi login
@@ -30,3 +30,17 @@ uv run fastapi deploy
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com)
 - [FastAPI Cloud](https://fastapicloud.com)
+
+## Tasks
+
+### Backend (FastAPI)
+
+Endpoints:
+
+Upload text
+
+Upload CSV
+
+Return mismatch score
+
+Return explanation
