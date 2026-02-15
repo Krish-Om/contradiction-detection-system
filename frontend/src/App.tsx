@@ -35,8 +35,8 @@ export default function App() {
               <Zap size={24} />
             </div>
             <div>
-              <h1>Text Analysis</h1>
-              <p>Professional text analysis powered by advanced AI</p>
+              <h1>Symptom Analysis and Risk Prediction Tool</h1>
+              <p>Advanced AI-Driven Symptom Analysis and Risk Prediction</p>
             </div>
           </div>
         </div>
@@ -49,13 +49,13 @@ export default function App() {
           <section className="form-section">
             <div className="form-container">
               <div className="form-header">
-                <h2>Analyze Your Text</h2>
-                <p>Enter text or upload a file for comprehensive analysis</p>
+                <h2>Analyze Your Symptoms & Predict Risk</h2>
+                <p>Input your symptoms or upload a CSV for comprehensive evaluation</p>
               </div>
 
               <form onSubmit={handleSubmit} className="analysis-form">
                 <div className="form-group">
-                  <label htmlFor="text-input">Text Input</label>
+                  <label htmlFor="text-input">Input Symptoms Here</label>
                   <textarea
                     id="text-input"
                     value={text}
@@ -74,7 +74,7 @@ export default function App() {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="file-input">Upload File</label>
+                  <label htmlFor="file-input">Upload Your File</label>
                   <div
                     className={`file-upload-wrapper ${file ? "has-file" : ""} ${isDragging ? "dragging" : ""}`}
                     onClick={() => document.getElementById("file-input")?.click()}
