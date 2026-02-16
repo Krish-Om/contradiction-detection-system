@@ -5,6 +5,7 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.129.0",
     "google-genai>=1.63.0",
+    "minio>=7.2.20",
     "numpy>=2.4.2",
     "psycopg2-binary>=2.9.11",
     "pytest>=9.0.2",
