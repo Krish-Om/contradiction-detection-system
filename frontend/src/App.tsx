@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAnalysis } from "./hooks/useAnalysis";
-import { Zap, AlertCircle, CheckCircle, FileUp } from "lucide-react";
+import { Zap, AlertCircle, CheckCircle, FileUp, X } from "lucide-react";
 import "./App.css";
 
 export default function App() {
@@ -8,6 +8,19 @@ export default function App() {
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  const allowedType = "application/pdf";
+
+  const handleFile = (selectedFile: File | null) => {
+    if (!selectedFile) return;
+
+    if (selectedFile.type !== allowedType) {
+      alert("Unsupported file type. Please upload a PDF file only.");
+      return;
+    }
+
+    setFile(selectedFile);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +40,6 @@ export default function App() {
 
   return (
     <div className="app-container">
-      
       <header className="header">
         <div className="header-content">
           <div className="header-title">
@@ -42,15 +54,15 @@ export default function App() {
         </div>
       </header>
 
-     
       <main className="main-content">
         <div className="container">
-         
           <section className="form-section">
             <div className="form-container">
               <div className="form-header">
                 <h2>Analyze Your Symptoms & Predict Risk</h2>
-                <p>Input your symptoms or upload a CSV for comprehensive evaluation</p>
+                <p>
+                  Input your symptoms or upload a PDF file for evaluation
+                </p>
               </div>
 
               <form onSubmit={handleSubmit} className="analysis-form">
@@ -74,10 +86,14 @@ export default function App() {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="file-input">Upload Your File</label>
+                  <label htmlFor="file-input">Upload PDF File</label>
                   <div
-                    className={`file-upload-wrapper ${file ? "has-file" : ""} ${isDragging ? "dragging" : ""}`}
-                    onClick={() => document.getElementById("file-input")?.click()}
+                    className={`file-upload-wrapper ${
+                      file ? "has-file" : ""
+                    } ${isDragging ? "dragging" : ""}`}
+                    onClick={() =>
+                      document.getElementById("file-input")?.click()
+                    }
                     onDragOver={(e) => {
                       e.preventDefault();
                       setIsDragging(true);
@@ -90,14 +106,16 @@ export default function App() {
                       e.preventDefault();
                       setIsDragging(false);
                       const droppedFile = e.dataTransfer.files[0];
-                      if (droppedFile) setFile(droppedFile);
+                      handleFile(droppedFile);
                     }}
                   >
                     <input
                       id="file-input"
                       type="file"
-                      onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                      accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                      accept=".pdf,application/pdf"
+                      onChange={(e) =>
+                        handleFile(e.target.files?.[0] ?? null)
+                      }
                       style={{ display: "none" }}
                     />
 
@@ -107,11 +125,23 @@ export default function App() {
                         {file
                           ? file.name
                           : isDragging
-                          ? "Release to upload your CSV or Excel file"
-                          : "Click or drag a CSV / Excel file here"}
+                          ? "Release to upload your PDF"
+                          : "Click or drag a PDF file here"}
                       </span>
                     </div>
                   </div>
+
+                  {file && (
+                    <div style={{ marginTop: "10px" }}>
+                      <button
+                        type="button"
+                        className="remove-file"
+                        onClick={() => setFile(null)}
+                      >
+                        <X size={16} /> Remove PDF
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -135,7 +165,6 @@ export default function App() {
             </div>
           </section>
 
-         
           {error && (
             <div className="error-alert">
               <AlertCircle size={20} />
@@ -146,7 +175,6 @@ export default function App() {
             </div>
           )}
 
-          
           {result && (
             <section className="results-section">
               <div className="results-header">
@@ -154,11 +182,12 @@ export default function App() {
                 <h2>Analysis Results</h2>
               </div>
 
-              
               <div className="metrics-grid">
                 <div className="metric-card alignment">
                   <div className="metric-label">Alignment Score</div>
-                  <div className="metric-value">{result.alignment}%</div>
+                  <div className="metric-value">
+                    {result.alignment}%
+                  </div>
                   <div className="metric-bar">
                     <div
                       className="metric-fill"
@@ -192,7 +221,6 @@ export default function App() {
                 </div>
               </div>
 
-              
               <div className="explanation-card">
                 <h3>Detailed Explanation</h3>
                 <p>{result.explanation}</p>
