@@ -1,9 +1,16 @@
+"""
+API Routes
+
+FastAPI endpoints for the Contradiction Detection System.
+Integrates with Data Layer and NLP Layer built by teammates.
+"""
+
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status
 from typing import Annotated
 import tempfile
 import os
 
-from schemas import (
+from .schemas import (
     VerificationResponse,
     ErrorResponse,
     HealthResponse,
@@ -11,21 +18,21 @@ from schemas import (
     Verdict,
     TextChunkResponse,
 )
+from .configs import Config
+from .database import SessionDep
+from .storage import MinioDep
 
-from configs import Config
-from database import SessionDep
-from storage import MinioDep
-
-# TODO:Add the Parser and Verfier
+# TODO: layers when ready
 # from data_layer.parser import DocumentParser
 # from nlp_layer.verifier import ClaimVerifier
 
-
-router = APIRouter(prefix="/api/v1", tags=["api"])
+router = APIRouter(prefix="/api", tags=["verification"])
 
 config = Config()
 
-# TODO: Initialize components DocumentParser and Claim Verifier
+# TODO: Initialize 
+# parser = DocumentParser()
+# verifier = ClaimVerifier()
 
 
 @router.post(
@@ -38,14 +45,16 @@ config = Config()
         500: {"model": ErrorResponse, "description": "Server error"},
     },
     summary="Verify a claim against a document",
-    description="""Upload a source document and verify a claim against it.
-             **Process:**
-             1. Parse the uploaded document
-             2. Extract and chunk text
-             3. Find relevant context using semantic search
-             4. Verify claim using AI
-             5. Return verdict with evidence
-             """,
+    description="""
+    Upload a source document and verify a claim against it.
+    
+    **Process:**
+    1. Parse the uploaded document (PDF/TXT)
+    2. Extract and chunk text
+    3. Find relevant context using semantic search
+    4. Verify claim using AI
+    5. Return verdict with evidence
+    """,
 )
 async def verify_claim(
     file: Annotated[UploadFile, File(description="Source document (PDF or TXT)")],
@@ -53,17 +62,18 @@ async def verify_claim(
     session: SessionDep,
     minio: MinioDep,
 ):
-    """Main endpoint for claim verification.
+    """
+    Main endpoint for claim verification.
 
     **Parameters:**
-    - file: PDF or TXT document
-    - claim: Statement to verify
+    - **file**: PDF or TXT document
+    - **claim**: Statement to verify
 
     **Returns:**
     - Verdict (TRUE, FALSE, PARTIALLY_TRUE, CANNOT_DETERMINE)
-    - Explanation
+    - Explanation of the verdict
     - Evidence quotes from document
-    - Confidence score
+    - Confidence score (0-1)
     - Relevant text chunks
     """
 
@@ -95,7 +105,7 @@ async def verify_claim(
         MAX_FILE_SIZE = 10 * 1024 * 1024
         if len(file_content) > MAX_FILE_SIZE:
             raise HTTPException(
-                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail=ErrorResponse(
                     error="File too large", detail="File size must be less than 10MB"
                 ).model_dump(),
@@ -118,36 +128,38 @@ async def verify_claim(
         temp_file.close()
 
         try:
-            # TODO: Call Data Layer to parse document
-            # chunks = document_parser.parse_and_chunk(temp_file.name)
+            # TODO: Parse document
+            # text = parser.parse(temp_file.name)
+            # chunks = parser.chunk(text)
 
-            # MOCK DATA (remove when teammates finish their work)
-            print(f"📄 Processing file: {file.filename}")  # ✅ Fixed
-            print(f"📏 File size: {len(file_content)} bytes")
-            print(f"🔍 Verifying claim: {claim}")
+            # TODO: Verify claim
+            # result = verifier.verify(claim, chunks)
 
-            # Mock response for testing
+            # MOCK RESPONSE (Remove when teammates finish)
+            print(f"📄 Processing: {file.filename}")
+            print(f"📏 Size: {len(file_content)} bytes")
+            print(f"🔍 Claim: {claim}")
+
             response = VerificationResponse(
                 verdict=Verdict.PARTIALLY_TRUE,
-                explanation="[MOCK] This is a placeholder response. Waiting for Data Layer and NLP Layer implementation.",
+                explanation="[MOCK] This is a placeholder. Waiting for Data Layer and NLP Layer implementation.",
                 evidence=[
-                    "[MOCK] Evidence will come from the document",
-                    "[MOCK] AI will analyze and provide quotes",
+                    "[MOCK] Evidence from the document will appear here",
+                    "[MOCK] AI will analyze and provide specific quotes",
                 ],
                 confidence=0.75,
                 relevant_chunks=[
                     TextChunkResponse(
-                        content="[MOCK] Relevant chunk from document will appear here",
+                        content="[MOCK] Relevant text chunk from document",
                         chunk_index=0,
                         page_number=1,
                     )
                 ],
             )
 
-            # TODO: When the claim verifier is done
-            # result = claim_verifier.verify(claim, chunks)
+            # TODO: Replace mock with real implementation
             # response = VerificationResponse(
-            #     verdict=result.verdict,
+            #     verdict=Verdict(result.verdict),
             #     explanation=result.explanation,
             #     evidence=result.evidence,
             #     confidence=result.confidence,
@@ -179,6 +191,65 @@ async def verify_claim(
 
 
 @router.get(
+    "/health",
+    response_model=HealthResponse,
+    summary="Health check",
+    description="Check if API and all services are running correctly",
+)
+async def health_check():
+    """
+    Health check endpoint.
+
+    Verifies that all services are available:
+    - Database connection
+    - Storage (MinIO) connection
+    - Configuration loaded
+    """
+    services = {}
+
+    # Check database
+    try:
+        from .database import engine
+
+        with engine.connect() as conn:
+            services["database"] = "connected"
+    except Exception as e:
+        services["database"] = f"error: {str(e)}"
+
+    # Check storage
+    try:
+        from .storage import minio_client
+
+        bucket_name = config.MINIO_BUCKET_NAME
+        if minio_client.bucket_exists(bucket_name):
+            services["storage"] = "connected"
+        else:
+            services["storage"] = "bucket_not_found"
+    except Exception as e:
+        services["storage"] = f"error: {str(e)}"
+
+    # Check configuration
+    try:
+        if config.MINIO_ROOT_USER:
+            services["config"] = "loaded"
+        else:
+            services["config"] = "incomplete"
+    except Exception as e:
+        services["config"] = f"error: {str(e)}"
+
+    # Determine overall status
+    all_healthy = all(
+        "connected" in str(v) or "loaded" in str(v) for v in services.values()
+    )
+
+    return HealthResponse(
+        status="healthy" if all_healthy else "degraded",
+        version="1.0.0",
+        services=services,
+    )
+
+
+@router.get(
     "/supported-types",
     response_model=SupportedTypesResponse,
     summary="Get supported file types",
@@ -187,7 +258,10 @@ async def verify_claim(
 async def get_supported_types():
     """
     Get list of supported document types.
+
+    Returns current and planned file type support.
     """
     return SupportedTypesResponse(
-        supported=["*.pdf", ".txt"], coming_soon=[".docx", ".png", ".jpg", ".jpeg"]
+        supported=[".pdf", ".txt"],  # ✅ Fixed: removed asterisk
+        coming_soon=[".docx", ".png", ".jpg", ".jpeg"],
     )
