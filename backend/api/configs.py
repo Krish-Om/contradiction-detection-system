@@ -9,10 +9,18 @@ load_dotenv(dotenv_path=env_path)
 
 class Config:
     def __init__(self) -> None:
+        # PostgreSQL Config
         self.POSTGRES_DB = os.getenv("POSTGRES_DB")
         self.POSTGRES_USER = os.getenv("POSTGRES_USER")
         self.POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
         self.POSTGRES_PORT = os.getenv("POSTGRES_PORT")
+
+        # MinIO/S3 Config
+        self.MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
+        self.MINIO_ROOT_USER = os.getenv("MINIO_ROOT_USER")
+        self.MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD")
+        self.MINIO_BUCKET_NAME = os.getenv("MINIO_BUCKET_NAME")
+        self.MINIO_SECURE = os.getenv("MINIO_SECURE", "false").lower() == "true"
 
     def get_sync_db_url(self) -> str:
         try:
