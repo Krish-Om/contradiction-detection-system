@@ -1,15 +1,22 @@
+"""
+API Schemas (Pydantic Models)
+
+Request and response models for the API.
+These define the contract between frontend and backend.
+"""
+
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from enum import Enum
 
 
 class Verdict(str, Enum):
-    """Possible verdicts for claim verification"""
+    """Possible verdicts for claim verification."""
 
     TRUE = "TRUE"
     FALSE = "FALSE"
-    PARTIALLY_TRUE = "PARTIALLY TRUE"
-    CANNOT_DETERMINE = "CANNON_DETERMINE"
+    PARTIALLY_TRUE = "PARTIALLY_TRUE"  # ✅ Fixed: underscore
+    CANNOT_DETERMINE = "CANNOT_DETERMINE"  # ✅ Fixed: spelling
 
 
 class TextChunkResponse(BaseModel):
@@ -22,7 +29,7 @@ class TextChunkResponse(BaseModel):
 
 class VerificationRequest(BaseModel):
     """
-    Request body for claim verfication
+    Request body for claim verification.
     File is uploaded separately via multipart/form-data.
     """
 
@@ -44,13 +51,13 @@ class VerificationResponse(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "verdict": "PARTIALLY TRUE",
+                "verdict": "PARTIALLY_TRUE",
                 "explanation": "Revenue increased by 20%, not 25%",
-                "evidence": ["Q3 2025 revenue was $4.5M", "Q3 2024 revenue was $3.5M"],
+                "evidence": ["Q3 2025 revenue was $4.2M", "Q3 2024 revenue was $3.5M"],
                 "confidence": 0.85,
                 "relevant_chunks": [
                     {
-                        "content": "Q3 reveneue was $4.2 million...",
+                        "content": "Q3 revenue was $4.2 million...",  # ✅ Fixed: spelling
                         "chunk_index": 0,
                         "page_number": 1,
                     }
@@ -60,7 +67,7 @@ class VerificationResponse(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    """Standard Error Response"""
+    """Standard error response."""
 
     error: str
     detail: Optional[str] = None
@@ -75,11 +82,11 @@ class ErrorResponse(BaseModel):
 
 
 class HealthResponse(BaseModel):
-    """Health Check Response"""
+    """Health check response."""
 
     status: str
     version: str
-    services: str
+    services: dict  # ✅ Fixed: dict not str
 
     class Config:
         json_schema_extra = {
@@ -89,6 +96,7 @@ class HealthResponse(BaseModel):
                 "services": {
                     "database": "connected",
                     "storage": "connected",
+                    "ai": "available",
                 },
             }
         }
