@@ -1,0 +1,12 @@
+# Environment files
+.env
+*.env
+
+# Virtual environments
+venv/
+.venv/
+*venv/
+
+# Code editors Configs
+*.vscode/
+.idea/
